@@ -40,9 +40,10 @@ DELETE /peopleDelete/:id: Delete a person by their ID.
 ```
 # Configuration
 The application can be configured by modifying the following files:
-
+```
 db/config.js: Configure the database connection settings.
 .env: Set environment variables such as port number and database credentials.
+```
 # Contributing
 Contributions are welcome! If you find any issues or have suggestions for improvement, please open an issue or submit a pull request.
 
