@@ -21,12 +21,15 @@ npm start
 Access the application in your browser at http://localhost:3000.
 
 # API Endpoints
+The following endpoints are available:
+``
 GET /people: Retrieve a list of all people.
 GET /people/:id: Retrieve a person by their ID.
 GET /peopleName/:name: Retrieve a person by their name.
 POST /peoplePost: Create a new person.
 PUT /peoplePut/:id: Update a person by their ID.
 DELETE /peopleDelete/:id: Delete a person by their ID.
+``
 # Configuration
 The application can be configured by modifying the following files:
 
