@@ -62,23 +62,52 @@ export const getPersonByName = async (req, res) => {
 export const createPerson = async (req, res) => {
   const newPerson = req.body;
 
+  // Check if any field is missing
+  if (
+    !newPerson.first_name ||
+    !newPerson.last_name ||
+    !newPerson.email ||
+    !newPerson.gender
+  ) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
   try {
     const pool = await sql.connect(config.sql);
+
+    // Check if a person with similar details already exists
+    const checkQuery = await pool
+      .request()
+      .input("email", sql.VarChar, newPerson.email)
+      .query(
+        "SELECT COUNT(*) AS count FROM dbo.personelData WHERE email = @email"
+      );
+
+    const existingCount = checkQuery.recordset[0].count;
+
+    if (existingCount > 0) {
+      return res
+        .status(409)
+        .json({ message: "Person with similar details already exists" });
+    }
+
+    // Create a new person
     const result = await pool
       .request()
-      .input("id", sql.Int, newPerson.id)
       .input("first_name", sql.VarChar, newPerson.first_name)
       .input("last_name", sql.VarChar, newPerson.last_name)
       .input("email", sql.VarChar, newPerson.email)
       .input("gender", sql.VarChar, newPerson.gender)
       .query(
-        "INSERT INTO dbo.personelData (id, first_name, last_name, email, gender) VALUES (@id, @first_name, @last_name, @email, @gender)"
+        "INSERT INTO dbo.personelData (first_name, last_name, email, gender) VALUES (@first_name, @last_name, @email, @gender)"
       );
 
     if (result.rowsAffected.length > 0) {
       res.status(201).json({ message: "Person created successfully" });
     } else {
-      res.status(500).json({ message: "There was a problem creating the person" });
+      res
+        .status(500)
+        .json({ message: "There was a problem creating the person" });
     }
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -94,19 +123,21 @@ export const updatePerson = async (req, res) => {
     const pool = await sql.connect(config.sql);
     const result = await pool
       .request()
-      .input("id", sql.Int, updatedPerson.id)
+      .input("id", sql.Int, id)
       .input("first_name", sql.VarChar, updatedPerson.first_name)
       .input("last_name", sql.VarChar, updatedPerson.last_name)
       .input("email", sql.VarChar, updatedPerson.email)
       .input("gender", sql.VarChar, updatedPerson.gender)
       .query(
-        "UPDATE dbo.personelData SET id = @id, first_name = @first_name, last_name = @last_name, email = @email, gender = @gender WHERE id = @id"
+        "UPDATE dbo.personelData SET first_name = @first_name, last_name = @last_name, email = @email, gender = @gender WHERE id = @id"
       );
 
     if (result.rowsAffected[0] === 1) {
       res.status(200).json({ message: "Person updated successfully" });
     } else {
-      res.status(500).json({ message: "There was a problem updating the person" });
+      res
+        .status(500)
+        .json({ message: "There was a problem updating the person" });
     }
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -127,7 +158,9 @@ export const deletePerson = async (req, res) => {
     if (result.rowsAffected[0] === 1) {
       res.status(200).json({ message: "Person deleted successfully" });
     } else {
-      res.status(500).json({ message: "There was a problem deleting the person" });
+      res
+        .status(500)
+        .json({ message: "There was a problem deleting the person" });
     }
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
